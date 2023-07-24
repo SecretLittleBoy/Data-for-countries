@@ -5,6 +5,7 @@ const App = () => {
   const [conturiesToShow, setCountriesToShow] = useState([])
   const [countryInfo, setCountryInfo] = useState([])
   const [search, setSearch] = useState('')
+  const [weather, setWeather] = useState([])
 
   useEffect(() => {
     axios
@@ -22,7 +23,7 @@ const App = () => {
     console.log('search', search)
     const new_countriesToShow = conturies.filter(country => country.toLowerCase().includes(search.toLowerCase()))
     setCountriesToShow(new_countriesToShow)
-    if (new_countriesToShow.length === 1) { 
+    if (new_countriesToShow.length === 1) {
       console.log('new_countriesToShow.length === 1', new_countriesToShow)
       const country = new_countriesToShow[0]
       const url = `https://studies.cs.helsinki.fi/restcountries/api/name/${country}`
@@ -36,7 +37,7 @@ const App = () => {
     }
   }
 
-  const showdetails = (country) => { 
+  const showdetails = (country) => {
     console.log('showdetails', country)
     const url = `https://studies.cs.helsinki.fi/restcountries/api/name/${country}`
     axios
@@ -46,6 +47,16 @@ const App = () => {
         console.log('new_countryInfo', new_countryInfo)
         setCountriesToShow([country])
         setCountryInfo(new_countryInfo)
+        const weather_url=`https://samples.openweathermap.org/data/2.5/weather?q=${new_countryInfo.capital}&appid=b1b15e88fa797225412429c1c50c122a1`
+        axios.get(weather_url).then(response => {
+          const new_weather = response.data
+          console.log('new_weather', new_weather)
+          setWeather(new_weather)
+        }).catch(error => { 
+          console.log('error', error)
+          console.log('weather_url', weather_url)
+          setWeather("sunning")
+        })
       })
   }
 
@@ -56,7 +67,7 @@ const App = () => {
           <p>Too many matches, specify another filter</p>
         </div>
       )
-    } else if (conturiesToShow.length === 1&&countryInfo.length!==0) {
+    } else if (conturiesToShow.length === 1 && countryInfo.length !== 0) {
       console.log('conturiesToShow.length === 1,countryInfo', countryInfo)
       return (
         <div>
@@ -64,7 +75,9 @@ const App = () => {
           <p>capital {countryInfo.capital}</p>
           <p>population {countryInfo.population}</p>
           <img src={countryInfo.flags.png} svg={countryInfo.flags.svg} alt={countryInfo.flags.alt} width="100" height="100" />
-          </div>
+          <h2>weather in {countryInfo.capital }</h2>
+          {weather}
+        </div>
       )
     }
     else {
@@ -73,7 +86,7 @@ const App = () => {
           {conturiesToShow.map(country =>
             <div key={country}>
               {country}
-              <button onClick={() => {showdetails(country) }}>show details</button>
+              <button onClick={() => { showdetails(country) }}>show details</button>
             </div>
           )}
         </div>
