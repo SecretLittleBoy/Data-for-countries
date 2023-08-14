@@ -2,15 +2,15 @@ import React, { useState } from 'react'
 import axios from 'axios'
 import { useQuery } from 'react-query'
 import {
-  Routes, Route, Link
+  Routes, Route, useNavigate
 } from 'react-router-dom'
 import DetailPage from './detailPage'
+import {usePage} from './Page'
 
 const App = () => {
-  const [conturiesToShow, setCountriesToShow] = useState([])
-  const [countryInfo, setCountryInfo] = useState([])
+  const Page = usePage()
   const [search, setSearch] = useState('')
-  const [weather, setWeather] = useState([])
+  const navigate = useNavigate()
 
   const conturies_result = useQuery('conturies',
     () => axios.get('https://studies.cs.helsinki.fi/restcountries/api/all').then(response => {
@@ -26,41 +26,9 @@ const App = () => {
   const handleSearch = (event) => {
     event.preventDefault()
     console.log('search', search)
+    navigate('/')
     const new_countriesToShow = conturies.filter(country => country.toLowerCase().includes(search.toLowerCase()))
-    setCountriesToShow(new_countriesToShow)
-    if (new_countriesToShow.length === 1) {
-      console.log('new_countriesToShow.length === 1', new_countriesToShow)
-      const country = new_countriesToShow[0]
-      const url = `https://studies.cs.helsinki.fi/restcountries/api/name/${country}`
-      axios
-        .get(url)
-        .then(response => {
-          const new_countryInfo = response.data
-          console.log('new_countryInfo', new_countryInfo)
-          setCountryInfo(new_countryInfo)
-        })
-    }
-  }
-
-  const Page = () => {
-    if (conturiesToShow.length > 10) {
-      return (
-        <div>
-          <p>Too many matches, specify another filter</p>
-        </div>
-      )
-    } else {
-      return (
-        <div>
-          {conturiesToShow.map(country =>
-            <div key={country}>
-              {country}
-              <Link to={`/${country}`}>details</Link>
-            </div>
-          )}
-        </div>
-      )
-    }
+    Page.setCountriesToShow(new_countriesToShow)
   }
 
   if (conturies_result.isLoading) {
@@ -75,7 +43,7 @@ const App = () => {
         <button type="submit">search</button>
       </form>
       <Routes>
-        <Route path="/" element={<Page />} />
+        <Route path="/" element={Page.Page()} />
         <Route path="/:countryname" element={<DetailPage />} />
       </Routes>
     </div>
