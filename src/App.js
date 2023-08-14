@@ -1,22 +1,28 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import axios from 'axios'
+import { useQuery } from 'react-query'
+
 const App = () => {
-  const [conturies, setCountries] = useState([])
   const [conturiesToShow, setCountriesToShow] = useState([])
   const [countryInfo, setCountryInfo] = useState([])
   const [search, setSearch] = useState('')
   const [weather, setWeather] = useState([])
 
-  useEffect(() => {
-    axios
-      .get('https://studies.cs.helsinki.fi/restcountries/api/all')
-      .then(response => {
-        const all_countries = response.data.map(country => country.name.official)
-        setCountries(all_countries)
-        console.log('effect')
-      }
-      )
-  }, [])
+  const conturies_result = useQuery(
+    'conturies',
+    () => 
+      axios
+        .get('https://studies.cs.helsinki.fi/restcountries/api/all')
+        .then(response => {
+          console.log('useQuery')
+          const result_data = response.data.map(country => country.name.official)
+          console.log('result_data', result_data)
+          return result_data
+          }
+        )
+    ,
+    {refetchOnWindowFocus: false}
+  )
 
   const handleSearch = (event) => {
     event.preventDefault()
@@ -94,6 +100,11 @@ const App = () => {
     }
   }
 
+  if (conturies_result.isLoading) {
+    return <div>Loading...</div>
+  }
+  const conturies = conturies_result.data
+  console.log('conturies', conturies)
   return (
     <div>
       <h1>Find countries</h1>
