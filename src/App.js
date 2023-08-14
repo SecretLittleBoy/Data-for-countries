@@ -1,6 +1,10 @@
 import React, { useState } from 'react'
 import axios from 'axios'
 import { useQuery } from 'react-query'
+import {
+  Routes, Route, Link
+} from 'react-router-dom'
+import DetailPage from './detailPage'
 
 const App = () => {
   const [conturiesToShow, setCountriesToShow] = useState([])
@@ -8,20 +12,15 @@ const App = () => {
   const [search, setSearch] = useState('')
   const [weather, setWeather] = useState([])
 
-  const conturies_result = useQuery(
-    'conturies',
-    () => 
-      axios
-        .get('https://studies.cs.helsinki.fi/restcountries/api/all')
-        .then(response => {
-          console.log('useQuery')
-          const result_data = response.data.map(country => country.name.official)
-          console.log('result_data', result_data)
-          return result_data
-          }
-        )
+  const conturies_result = useQuery('conturies',
+    () => axios.get('https://studies.cs.helsinki.fi/restcountries/api/all').then(response => {
+      console.log('useQuery')
+      const result_data = response.data.map(country => country.name.official)
+      console.log('result_data', result_data)
+      return result_data
+    })
     ,
-    {refetchOnWindowFocus: false}
+    { refetchOnWindowFocus: false }
   )
 
   const handleSearch = (event) => {
@@ -43,29 +42,6 @@ const App = () => {
     }
   }
 
-  const showdetails = (country) => {
-    console.log('showdetails', country)
-    const url = `https://studies.cs.helsinki.fi/restcountries/api/name/${country}`
-    axios
-      .get(url)
-      .then(response => {
-        const new_countryInfo = response.data
-        console.log('new_countryInfo', new_countryInfo)
-        setCountriesToShow([country])
-        setCountryInfo(new_countryInfo)
-        const weather_url=`https://samples.openweathermap.org/data/2.5/weather?q=${new_countryInfo.capital}&appid=b1b15e88fa797225412429c1c50c122a1`
-        axios.get(weather_url).then(response => {
-          const new_weather = response.data
-          console.log('new_weather', new_weather)
-          setWeather(new_weather)
-        }).catch(error => { 
-          console.log('error', error)
-          console.log('weather_url', weather_url)
-          setWeather("sunning")
-        })
-      })
-  }
-
   const Page = () => {
     if (conturiesToShow.length > 10) {
       return (
@@ -73,26 +49,13 @@ const App = () => {
           <p>Too many matches, specify another filter</p>
         </div>
       )
-    } else if (conturiesToShow.length === 1 && countryInfo.length !== 0) {
-      console.log('conturiesToShow.length === 1,countryInfo', countryInfo)
-      return (
-        <div>
-          <h2>{countryInfo.name.official}</h2>
-          <p>capital {countryInfo.capital}</p>
-          <p>population {countryInfo.population}</p>
-          <img src={countryInfo.flags.png} svg={countryInfo.flags.svg} alt={countryInfo.flags.alt} width="100" height="100" />
-          <h2>weather in {countryInfo.capital }</h2>
-          {weather}
-        </div>
-      )
-    }
-    else {
+    } else {
       return (
         <div>
           {conturiesToShow.map(country =>
             <div key={country}>
               {country}
-              <button onClick={() => { showdetails(country) }}>show details</button>
+              <Link to={`/${country}`}>details</Link>
             </div>
           )}
         </div>
@@ -104,7 +67,6 @@ const App = () => {
     return <div>Loading...</div>
   }
   const conturies = conturies_result.data
-  console.log('conturies', conturies)
   return (
     <div>
       <h1>Find countries</h1>
@@ -112,7 +74,10 @@ const App = () => {
         <input value={search} onChange={event => setSearch(event.target.value)} />
         <button type="submit">search</button>
       </form>
-      <Page />
+      <Routes>
+        <Route path="/" element={<Page />} />
+        <Route path="/:countryname" element={<DetailPage />} />
+      </Routes>
     </div>
   );
 }
