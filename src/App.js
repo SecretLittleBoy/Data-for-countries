@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useRef } from 'react'
 import axios from 'axios'
 import { useQuery } from 'react-query'
 import {
@@ -9,7 +9,6 @@ import {usePage} from './Page'
 
 const App = () => {
   const Page = usePage()
-  const [search, setSearch] = useState('')
   const navigate = useNavigate()
 
   const conturies_result = useQuery('conturies',
@@ -23,8 +22,8 @@ const App = () => {
     { refetchOnWindowFocus: false }
   )
 
-  const handleSearch = (event) => {
-    event.preventDefault()
+  const handleInputChange = (event) => {
+    const search = event.target.value
     console.log('search', search)
     navigate('/')
     const new_countriesToShow = conturies.filter(country => country.toLowerCase().includes(search.toLowerCase()))
@@ -38,10 +37,7 @@ const App = () => {
   return (
     <div>
       <h1>Find countries</h1>
-      <form onSubmit={handleSearch}>
-        <input value={search} onChange={event => setSearch(event.target.value)} />
-        <button type="submit">search</button>
-      </form>
+      <input  onChange={handleInputChange} />
       <Routes>
         <Route path="/" element={Page.Page()} />
         <Route path="/:countryname" element={<DetailPage />} />
